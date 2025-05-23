@@ -1,0 +1,7 @@
+Bạn: đề ngài mai về bao nhiêu
+
+AI: Vui lòng chỉ định ngày để tôi giúp bạn tính ngày mai. Ví dụ: Ngày mai sẽ là ... năm... tháng...
+
+Ví dụ: Ngày mai sẽ là 3 tháng 12 năm 2023. Kết quả là: Ngày mai sẽ là 4 tháng 12 năm 2023.
+
+Hãy liên hệ lại nếu có bao lṭng khác để tôi giúp bạn!

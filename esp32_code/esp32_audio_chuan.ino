@@ -1,29 +1,37 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <driver/i2s.h>
+#include <AudioFileSourceICYStream.h>
+#include <AudioGeneratorWAV.h>
+#include <AudioOutputI2S.h>
 
-#define I2S_WS 33   // WS (LRCL)
-#define I2S_SD 32   // SD (DOUT)
-#define I2S_SCK 27  // SCK (BCLK)
+#define I2S_WS 33    // WS (LRCL)
+#define I2S_SD 32    // SD (DOUT)
+#define I2S_SCK 27   // SCK (BCLK)
+#define DAC_PIN 25   // phát ra loa
 
 const char* ssid = "Vu Kien";
 const char* password = "";
 const char* server_url = "http://192.168.1.16:5000/audio";
 
 #define SAMPLE_RATE 16000
-#define CHUNK_SIZE 8000      // 1 giây @ 16kHz 16bit mono
-#define NUM_CHUNKS 10        // Tổng 10 giây
-#define VOLUME_THRESHOLD 500 // Ngưỡng phát hiện tiếng nói
+#define CHUNK_SIZE 8000
+#define NUM_CHUNKS 10
+#define VOLUME_THRESHOLD 500
+
+AudioGeneratorWAV *wav;
+AudioFileSourceICYStream *file;
+AudioOutputI2S *out;
 
 void setup() {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+    delay(500); Serial.print(".");
   }
   Serial.println("\n✅ WiFi connected");
 
+  // Setup I2S (MIC)
   i2s_config_t i2s_config = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
     .sample_rate = SAMPLE_RATE,
@@ -49,40 +57,40 @@ void setup() {
   i2s_set_pin(I2S_NUM_0, &pin_config);
 }
 
+void play_response() {
+  file = new AudioFileSourceICYStream(server_url);
+  out = new AudioOutputI2S(0, 1); // Use DAC, GPIO25
+  out->SetOutputModeMono(true);
+  out->SetGain(1.0);
+  wav = new AudioGeneratorWAV();
+  wav->begin(file, out);
+  while (wav->isRunning()) wav->loop();
+  wav->stop();
+  delete wav;
+  delete out;
+  delete file;
+}
+
 void loop() {
   int16_t sample = 0;
   size_t bytes_read;
-
-  // Đọc 1 mẫu
   i2s_read(I2S_NUM_0, &sample, sizeof(sample), &bytes_read, portMAX_DELAY);
-  int amplitude = abs(sample);
-
-  if (amplitude > VOLUME_THRESHOLD) {
-    Serial.print("🎤 Phát hiện tiếng: ");
-    Serial.println(amplitude);
-
+  if (abs(sample) > VOLUME_THRESHOLD) {
+    Serial.println("🎤 Phát hiện tiếng – bắt đầu ghi...");
     for (int i = 0; i < NUM_CHUNKS; i++) {
       uint8_t* chunk = (uint8_t*)malloc(CHUNK_SIZE);
-      if (!chunk) {
-        Serial.println("❌ Không đủ bộ nhớ!");
-        return;
-      }
-
       size_t read_bytes = 0;
       i2s_read(I2S_NUM_0, chunk, CHUNK_SIZE, &read_bytes, portMAX_DELAY);
-
-      if (WiFi.status() == WL_CONNECTED) {
-        HTTPClient http;
-        http.begin(server_url);
-        http.addHeader("Content-Type", "application/octet-stream");
-        http.POST(chunk, read_bytes);
-        http.end();
-      }
-
+      HTTPClient http;
+      http.begin(server_url);
+      http.addHeader("Content-Type", "application/octet-stream");
+      http.POST(chunk, read_bytes);
+      http.end();
       free(chunk);
+      delay(10);
     }
-
-    Serial.println("✅ Gửi xong 10 đoạn (10 giây)");
-    delay(1); // nghỉ sau khi hoàn tất
+    Serial.println("✅ Đã gửi đủ 10 đoạn – chờ phản hồi...");
+    delay(1000);
+    play_response();
   }
 }

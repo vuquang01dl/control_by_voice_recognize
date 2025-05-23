@@ -1,0 +1,25 @@
+Bạn: alo bật quạt giúp tôi
+
+AI: Tôi không thể đảm bảo được mọi việc trong cuộc sống của bạn, nhưng tôi có thể giúp bạn tìm hiểu về cách bật quạt. Đây là cách bật quạt trên một máy tính bàn phổ thông:
+
+1. Mở trình duyệt, phím tắt của mình sẽ là F12 hoặc Ctrl+Shift+I (Chrome và Firefox).
+2. Trong Các đối số, chọn "Setting" hoặc "Settings" (tùy thuộc vào trình duyệt).
+3. Chọn "DevTools" ở bên phải.
+4. Trên tab "Network", bạn sẽ thấy một danh sách các yếu tố (ví dụ: Images, CSS, JavaScript, ...).
+5. Chọn "CSS", rồi chọn màn hình mà bạn muốn bật quạt và thay đổi hủy dòng sau vào ô "User Agent" (ví dụ: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:87.0) Gecko/20100101 Firefox/87.0):
+
+    ```
+    window.dispatchEvent(new Event('resize'));
+    ```
+
+6. Ốt lưỡi bạn sẽ bắt đầu bật quản, và bạn có thể tải trang lại để xem kết quả.
+
+Nếu bạn muốn bật quạt trên điện thoại và ứng dụng, tùy thuộc vào loại điện thoại và ứng dụng của bạn, cách bật quạt có thể khác nhau. Bạn có thể tìm hiểu thêm về cách bật quạt trên các ứng dụng phía dưới:
+
+- ứng dụng Palestine Kid Map (điện thoại Android): https://support.wikipedia.org/wiki/Help:Palestine_Kid_Map#How_to_enable_Images_and_JavaScript_on_the_Palestine_Kid_Map[1]
+- ứng dụng Wikivoyage (điện thoại Android): https://travel.wikimedia.org/wiki/Help:Troubleshooting[2]
+
+[1] https://support.wikipedia.org/wiki/Help:Palestine_Kid_Map#How_to_enable_Images_and_JavaScript_on_the_Palestine_Kid_Map
+[2] https://travel.wikimedia.org/wiki/Help:Troubleshooting
+
+Hope this helps! Let me know if you have any other questions.
